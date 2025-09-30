@@ -1,0 +1,26 @@
+{
+  "name": "tracksnap-backend",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "TrackSnap backend API (Express) for parcel handoff verification and notifications.",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon --watch src src/server.js",
+    "start": "node src/server.js",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.0",
+    "@supabase/supabase-js": "^2.43.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "firebase-admin": "^12.5.0",
+    "qrcode": "^1.5.3",
+    "twilio": "^4.21.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "nodemon": "^3.1.4"
+  }
+}
