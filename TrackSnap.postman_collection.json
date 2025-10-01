@@ -16,7 +16,7 @@
         "response": []
       },
       {
-        "name": "Create Parcel",
+  "name": "Create Parcel",
         "event": [
           {
             "listen": "test",
@@ -25,7 +25,10 @@
                 "const json = pm.response.json();",
                 "pm.test('Created parcel has id', function() { pm.expect(json.id).to.be.a('string'); });",
                 "pm.collectionVariables.set('parcelId', json.id);",
-                "pm.test('QR code present', function() { pm.expect(json.qr).to.include('data:image'); });"
+                "pm.test('QR code present', function() { pm.expect(json.qr).to.include('data:image'); });",
+                "pm.test('Includes sortationCenter', function() { pm.expect(json).to.have.property('sortationCenter'); });",
+                "pm.test('Includes deliveryHub', function() { pm.expect(json).to.have.property('deliveryHub'); });",
+                "pm.test('Allows missing pickupLocation (optional)', function() { pm.expect(json).to.have.property('pickupLocation'); });"
               ],
               "type": "text/javascript"
             }
@@ -36,7 +39,7 @@
           "header": [ { "key": "Content-Type", "value": "application/json" } ],
           "body": {
             "mode": "raw",
-              "raw": "{\n  \"recipient\": { \"name\": \"Jane Doe\", \"phone\": \"+15550001111\", \"email\": \"jane@example.com\", \"coordinates\": { \"lat\": 40.7128, \"lng\": -74.0060 } },\n  \"metadata\": { \"orderId\": \"ORDER123\" }\n}"
+        "raw": "{\n  \"recipient\": { \"name\": \"Jane Doe\", \"phone\": \"+15550001111\", \"email\": \"jane@example.com\", \"coordinates\": { \"lat\": 40.7128, \"lng\": -74.0060 } },\n  \"pickupLocation\": { \"lat\": 40.6900, \"lng\": -74.0200 },\n  \"sortationCenter\": { \"lat\": 40.7000, \"lng\": -74.0100 },\n  \"deliveryHub\": { \"lat\": 40.7100, \"lng\": -74.0000 },\n  \"metadata\": { \"orderId\": \"ORDER123\" }\n}"
           },
           "url": { "raw": "{{baseUrl}}/parcel", "host": ["{{baseUrl}}"], "path": ["parcel"] }
         },
@@ -110,7 +113,26 @@
             "pm.test('Tracking response has parcelId', () => pm.expect(json.parcelId).to.eql(pm.collectionVariables.get('parcelId')));",
             "pm.test('Latest contains coordinates', () => pm.expect(json.latest.coordinates).to.be.an('object'));",
             "pm.test('Includes recipientCoordinates (nullable)', () => pm.expect(json).to.have.property('recipientCoordinates'));",
-            "pm.test('Includes distanceMeters when both points known', () => { if(json.recipientCoordinates && json.latest.coordinates) { pm.expect(json.distanceMeters).to.be.a('number'); } });"
+            "pm.test('Includes distanceMeters when both points known', () => { if(json.recipientCoordinates && json.latest.coordinates) { pm.expect(json.distanceMeters).to.be.a('number'); } });",
+            "pm.test('Legs object present after first tracking (if destination + at least one hub point exists)', () => { if(json.recipientCoordinates){ pm.expect(json).to.have.property('legs'); } });"
+          ]}}
+        ],
+        "response": []
+      },
+      {
+        "name": "Update Hubs",
+        "request": {
+          "method": "PATCH",
+          "header": [ { "key": "Content-Type", "value": "application/json" } ],
+          "body": { "mode": "raw", "raw": "{\n  \"sortationCenter\": { \"lat\": 40.7050, \"lng\": -74.0120 },\n  \"deliveryHub\": { \"lat\": 40.7150, \"lng\": -73.9950 },\n  \"actor\": \"ops-user-1\"\n}" },
+          "url": { "raw": "{{baseUrl}}/parcel/{{parcelId}}/hubs", "host": ["{{baseUrl}}"], "path": ["parcel", "{{parcelId}}", "hubs"] }
+        },
+        "event": [
+          {"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "const json = pm.response.json();",
+            "pm.test('Hub update returns parcel id', () => pm.expect(json.id).to.eql(pm.collectionVariables.get('parcelId')));",
+            "pm.test('Hub audit log exists', () => pm.expect(json.hubAuditLog).to.be.an('array'));",
+            "pm.test('Legs reset after hub update', () => pm.expect(json.legs).to.be.undefined);"
           ]}}
         ],
         "response": []

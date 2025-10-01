@@ -10,6 +10,17 @@
  *   coordinates?: { lat:number, lng:number }
  * }} recipient
  * @property {Object} metadata
+ * @property {{lat:number,lng:number}|undefined} sortationCenter - Optional originating facility coordinates
+ * @property {{lat:number,lng:number}|undefined} deliveryHub - Optional last-mile hub coordinates
+ * @property {{lat:number,lng:number}|undefined} pickupLocation - Optional initial pickup point coordinates
+ * @property {{
+ *   pickupToSortation?: { meters:number, km:number },
+ *   sortationToHub?: { meters:number, km:number },
+ *   hubToDestination?: { meters:number, km:number },
+ *   sortationToDestination?: { meters:number, km:number },
+ *   totalRoute?: { meters:number, km:number }
+ * }|undefined} legs - Computed leg distances (set on first tracking event)
+ * @property {Array<{ timestamp:string, actor?:string, changes:{ sortationCenter?: {from?:any,to?:any}, deliveryHub?: {from?:any,to?:any} } }>|undefined} hubAuditLog - History of hub coordinate changes
  * @property {string} status - pending|delivered|flagged
  * @property {Array<{timestamp:string, gps?:any, courierId?:string, photoURL?:string}>} handoffLog
  * @property {Array<{timestamp:string, coordinates:{lat:number,lng:number}}>} trackingLog

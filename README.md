@@ -34,6 +34,7 @@ src/
 |--------|---------------|-------------|
 | POST   | /parcel       | Create parcel (returns parcel incl. QR) |
 | GET    | /parcel/:id   | Get parcel details |
+| PATCH  | /parcel/:id/hubs | Update sortation/delivery hub coordinates |
 | POST   | /verify-scan  | Log handoff (courier -> recipient) & notify |
 | POST   | /feedback     | Submit rating / issue flag |
 | POST   | /track-parcel | Append real-time location update |
@@ -62,10 +63,55 @@ Create Parcel (POST /parcel):
     "email": "jane@example.com",
     "coordinates": { "lat": 40.7128, "lng": -74.006 }
   },
+  "pickupLocation": { "lat": 40.6900, "lng": -74.0200 },
+  "sortationCenter": { "lat": 40.7000, "lng": -74.0100 },
+  "deliveryHub": { "lat": 40.7100, "lng": -74.0000 },
   "metadata": { "orderId": "ABC123" }
 }
 ```
-`recipient.coordinates` is optional. If provided, lat must be between -90 and 90 and lng between -180 and 180. This can represent the intended delivery location for mapping / proximity alerts.
+`recipient.coordinates`, `pickupLocation`, `sortationCenter`, and `deliveryHub` are optional coordinate objects. Each must provide numeric `lat` (-90..90) and `lng` (-180..180). These enable routing context: pickup -> sortation -> hub -> destination.
+
+### Hub Update (PATCH /parcel/:id/hubs)
+Request body (any subset):
+```json
+{
+  "sortationCenter": { "lat": 40.7050, "lng": -74.0120 },
+  "deliveryHub": { "lat": 40.7150, "lng": -73.9950 },
+  "actor": "ops-user-1"
+}
+```
+Response: full updated parcel; `hubAuditLog` gains an entry and `legs` reset (recomputed on next track event).
+
+### Legs Distance Object
+On first tracking update (after all relevant points known) `parcel.legs` may include:
+```json
+{
+  "pickupToSortation": { "meters": 1234, "km": 1.234 },
+  "sortationToHub": { "meters": 222, "km": 0.222 },
+  "hubToDestination": { "meters": 555, "km": 0.555 },
+  "sortationToDestination": { "meters": 777, "km": 0.777 },
+  "totalRoute": { "meters": 2766, "km": 2.766 }
+}
+```
+Notes:
+- `pickupToSortation` only when both pickup and sortation are set.
+- `sortationToHub` and `hubToDestination` only if deliveryHub set.
+- `sortationToDestination` only if no hub (direct route).
+- `totalRoute` sums present segment meters (excluding redundant direct path when hub chain present).
+
+### Hub Audit Log
+`hubAuditLog` entries look like:
+```json
+{
+  "timestamp": "2025-10-01T12:40:00.000Z",
+  "actor": "ops-user-1",
+  "changes": {
+    "sortationCenter": { "from": {"lat":40.7000,"lng":-74.0100}, "to": {"lat":40.7050,"lng":-74.0120} },
+    "deliveryHub": { "from": {"lat":40.7100,"lng":-74.0000}, "to": {"lat":40.7150,"lng":-73.9950} }
+  }
+}
+```
+When hubs change, previous `legs` are cleared and recalculated at the next tracking update.
 
 Verify Scan (POST /verify-scan):
 ```json

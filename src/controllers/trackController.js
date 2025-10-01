@@ -12,7 +12,7 @@ export async function trackParcel(req, res, next) {
     const recipientCoordinates = parcel?.recipient?.coordinates || null;
 
     // Proceed with tracking update (still requires current coordinates in body)
-    const result = await parcelService.trackLocation({ parcelId, coordinates, recipientCoordinates, timestamp });
+  const result = await parcelService.trackLocation({ parcelId, coordinates, timestamp });
 
     let distanceMeters = null;
     if (recipientCoordinates && coordinates && typeof coordinates?.lat === 'number' && typeof coordinates?.lng === 'number') {
@@ -21,7 +21,7 @@ export async function trackParcel(req, res, next) {
     const distanceKm = metersToKm(distanceMeters);
 
     // Include recipient/destination coordinates & distance metrics
-    res.status(201).json({ ...result, recipientCoordinates, distanceMeters, distanceKm });
+  res.status(201).json({ ...result, recipientCoordinates, distanceMeters, distanceKm, legs: parcel.legs || null });
   } catch (err) {
     next(err);
   }
