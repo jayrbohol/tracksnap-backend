@@ -6,6 +6,7 @@
  * @property {Object} metadata
  * @property {string} status - pending|delivered|flagged
  * @property {Array<{timestamp:string, gps?:any, courierId?:string, photoURL?:string}>} handoffLog
+ * @property {Array<{timestamp:string, coordinates:{lat:number,lng:number}}>} trackingLog
  * @property {{rating?:number, issue?:string, timestamp?:string}|null} feedback
  * @property {string} qr - QR code data URL
  */

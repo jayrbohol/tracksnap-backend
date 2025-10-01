@@ -36,6 +36,20 @@ src/
 | GET    | /parcel/:id   | Get parcel details |
 | POST   | /verify-scan  | Log handoff (courier -> recipient) & notify |
 | POST   | /feedback     | Submit rating / issue flag |
+| POST   | /track-parcel | Append real-time location update |
+| GET    | /parcel/:id/tracking | Get tracking history only |
+
+## Real-time WebSocket
+- URL: `ws://localhost:4000/ws`
+- Messages emitted:
+  - `{"type":"handoff","parcelId":"...","status":"delivered","lastLog":{...}}`
+  - `{"type":"tracking","parcelId":"...","point":{timestamp,coordinates}}`
+
+Use any WS client (e.g., browser DevTools):
+```js
+const ws = new WebSocket('ws://localhost:4000/ws');
+ws.onmessage = e => console.log('WS', JSON.parse(e.data));
+```
 | GET    | /health       | Health check |
 
 ### Request Shapes

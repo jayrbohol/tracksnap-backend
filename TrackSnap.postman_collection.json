@@ -92,10 +92,47 @@
         ]}}
       ],
       "response": []
+    },
+    {
+      "name": "Track Parcel (Location Update)",
+      "request": {
+        "method": "POST",
+        "header": [ {"key": "Content-Type", "value": "application/json"} ],
+        "body": {"mode": "raw", "raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 40.713, \"lng\": -74.005 },\n  \"timestamp\": \"{{currentTimestamp}}\"\n}"},
+        "url": { "raw": "{{baseUrl}}/track-parcel", "host": ["{{baseUrl}}"], "path": ["track-parcel"] }
+      },
+      "event": [
+        {"listen": "prerequest", "script": {"type": "text/javascript", "exec": [
+          "pm.collectionVariables.set('currentTimestamp', new Date().toISOString());"
+        ]}},
+        {"listen": "test", "script": {"type": "text/javascript", "exec": [
+          "const json = pm.response.json();",
+          "pm.test('Tracking response has parcelId', () => pm.expect(json.parcelId).to.eql(pm.collectionVariables.get('parcelId')));",
+          "pm.test('Latest contains coordinates', () => pm.expect(json.latest.coordinates).to.be.an('object'));"
+        ]}}
+      ],
+      "response": []
+    },
+    {
+      "name": "Get Tracking History",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/parcel/{{parcelId}}/tracking", "host": ["{{baseUrl}}"], "path": ["parcel", "{{parcelId}}", "tracking"] }
+      },
+      "event": [
+        {"listen": "test", "script": {"type": "text/javascript", "exec": [
+          "const json = pm.response.json();",
+          "pm.test('Tracking history returns array', () => pm.expect(json.points).to.be.an('array'));"
+        ]}}
+      ],
+      "response": []
     }
   ],
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:4000" },
     { "key": "parcelId", "value": "" }
   ]
+  ,
+  "event": []
 }
