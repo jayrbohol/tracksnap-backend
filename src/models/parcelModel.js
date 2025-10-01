@@ -2,7 +2,13 @@
 /**
  * @typedef {Object} Parcel
  * @property {string} id
- * @property {{name:string, phone?:string, email?:string}} recipient
+ * @property {{
+ *   name:string,
+ *   phone?:string,
+ *   email?:string,
+ *   // Optional geolocation of recipient destination (lat:-90..90, lng:-180..180)
+ *   coordinates?: { lat:number, lng:number }
+ * }} recipient
  * @property {Object} metadata
  * @property {string} status - pending|delivered|flagged
  * @property {Array<{timestamp:string, gps?:any, courierId?:string, photoURL?:string}>} handoffLog

@@ -56,10 +56,16 @@ ws.onmessage = e => console.log('WS', JSON.parse(e.data));
 Create Parcel (POST /parcel):
 ```json
 {
-  "recipient": { "name": "Jane", "phone": "+15556667777", "email": "jane@example.com" },
+  "recipient": {
+    "name": "Jane",
+    "phone": "+15556667777",
+    "email": "jane@example.com",
+    "coordinates": { "lat": 40.7128, "lng": -74.006 }
+  },
   "metadata": { "orderId": "ABC123" }
 }
 ```
+`recipient.coordinates` is optional. If provided, lat must be between -90 and 90 and lng between -180 and 180. This can represent the intended delivery location for mapping / proximity alerts.
 
 Verify Scan (POST /verify-scan):
 ```json
@@ -79,6 +85,27 @@ Feedback (POST /feedback):
   "issue": "Box damaged"
 }
 ```
+
+Track Parcel (POST /track-parcel):
+```json
+{
+  "parcelId": "uuid",
+  "coordinates": { "lat": 40.713, "lng": -74.005 },
+  "timestamp": "2025-10-01T12:30:00.000Z"
+}
+```
+Response (includes destination + distance if recipient coordinates known):
+```json
+{
+  "parcelId": "uuid",
+  "latest": { "timestamp": "2025-10-01T12:30:00.000Z", "coordinates": { "lat": 40.713, "lng": -74.005 } },
+  "count": 3,
+  "recipientCoordinates": { "lat": 40.7128, "lng": -74.006 },
+  "distanceMeters": 89,
+  "distanceKm": 0.089
+}
+```
+`distanceMeters` is only populated when both current coordinates and destination coordinates exist. `distanceKm` is a convenience rounded value (3 decimals).
 
 ## Environment Variables
 See `.env.example` for full list. Copy to `.env` and fill values.

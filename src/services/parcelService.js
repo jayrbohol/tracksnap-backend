@@ -8,6 +8,15 @@ const repo = getParcelRepo();
 
 export const parcelService = {
   async createParcel({ recipient, metadata }) {
+    if (!recipient || typeof recipient !== 'object') throw new Error('recipient is required');
+    // Defensive validation of coordinates if present
+    if (recipient.coordinates) {
+      const { lat, lng } = recipient.coordinates;
+      const isNum = (v) => typeof v === 'number' && !Number.isNaN(v);
+      if (!isNum(lat) || !isNum(lng)) throw new Error('recipient.coordinates.lat & lng must be numbers');
+      if (lat < -90 || lat > 90 || lng < -180 || lng > 180) throw new Error('recipient.coordinates out of range');
+      recipient = { ...recipient, coordinates: { lat, lng } }; // sanitized
+    }
     const id = uuid();
     const qr = await qrGenerator.generateDataUrl(id);
     const parcel = {
