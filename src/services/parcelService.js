@@ -54,7 +54,7 @@ export const parcelService = {
     return parcel;
   },
 
-  async trackLocation({ parcelId, coordinates, timestamp }) {
+  async trackLocation({ parcelId, coordinates, recipientCoordinates, timestamp }) {
     const parcel = await repo.getById(parcelId);
     if (!parcel) throw new Error('Parcel not found');
     if (!coordinates || typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number') {
@@ -62,7 +62,8 @@ export const parcelService = {
     }
     const entry = {
       timestamp: timestamp || new Date().toISOString(),
-      coordinates: { lat: coordinates.lat, lng: coordinates.lng }
+      coordinates: { lat: coordinates.lat, lng: coordinates.lng },
+      recipientCoordinates: { lat: recipientCoordinates.lat, lng: recipientCoordinates.lng }
     };
     parcel.trackingLog = parcel.trackingLog || [];
     parcel.trackingLog.push(entry);
