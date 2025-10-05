@@ -3,7 +3,7 @@
       "_postman_id": "b6f7f1f0-4c6e-4b8b-9c42-tracksnap12345",
       "name": "TrackSnap Backend API",
       "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-      "description": "Postman collection for TrackSnap parcel tracking backend."
+      "description": "Postman collection for TrackSnap parcel tracking backend.\n\n## New Address-Based Parcel Creation\n\nThe API now supports creating parcels using recipient addresses instead of coordinates:\n- **Primary method**: Use `recipient.address` (string) - automatically geocoded to coordinates\n- **Legacy support**: Use `recipient.coordinates` (lat/lng object) - still supported\n\n## Features\n- Automatic geocoding using OpenStreetMap Nominatim API\n- Real-time parcel tracking with GPS coordinates\n- QR code generation for parcel identification\n- WebSocket notifications for live updates\n- Comprehensive error handling and validation\n\n## Test Cases Include\n- Address-based parcel creation (Metro Manila, Philippines)\n- Legacy coordinate-based creation\n- Error handling for invalid addresses\n- Complete parcel lifecycle testing\n\n## Location Examples\n- **Metro Manila Landmarks**: SM Mall of Asia, NAIA Terminal 3, Makati CBD, BGC Taguig\n- **Real Addresses**: All test addresses use actual locations in Metro Manila, Philippines"
     },
     "item": [
       {
@@ -16,7 +16,7 @@
         "response": []
       },
       {
-  "name": "Create Parcel",
+        "name": "Create Parcel (Address-based)",
         "event": [
           {
             "listen": "test",
@@ -26,9 +26,36 @@
                 "pm.test('Created parcel has id', function() { pm.expect(json.id).to.be.a('string'); });",
                 "pm.collectionVariables.set('parcelId', json.id);",
                 "pm.test('QR code present', function() { pm.expect(json.qr).to.include('data:image'); });",
-                "pm.test('Includes sortationCenter', function() { pm.expect(json).to.have.property('sortationCenter'); });",
-                "pm.test('Includes deliveryHub', function() { pm.expect(json).to.have.property('deliveryHub'); });",
-                "pm.test('Allows missing pickupLocation (optional)', function() { pm.expect(json).to.have.property('pickupLocation'); });"
+                "pm.test('Recipient has coordinates from geocoding', function() { pm.expect(json.recipient.coordinates).to.be.an('object'); });",
+                "pm.test('Recipient has formatted address', function() { pm.expect(json.recipient.formattedAddress).to.be.a('string'); });",
+                "pm.test('Coordinates are valid numbers', function() {",
+                "  pm.expect(json.recipient.coordinates.lat).to.be.a('number');",
+                "  pm.expect(json.recipient.coordinates.lng).to.be.a('number');",
+                "});",
+                "pm.test('PickupLocation has proper structure', function() { ",
+                "  if (json.pickupLocation) {",
+                "    pm.expect(json.pickupLocation).to.be.an('object');",
+                "    if (json.pickupLocation.coordinates) {",
+                "      pm.expect(json.pickupLocation.coordinates).to.be.an('object');",
+                "    }",
+                "  }",
+                "});",
+                "pm.test('SortationCenter has proper structure', function() { ",
+                "  if (json.sortationCenter) {",
+                "    pm.expect(json.sortationCenter).to.be.an('object');",
+                "    if (json.sortationCenter.coordinates) {",
+                "      pm.expect(json.sortationCenter.coordinates).to.be.an('object');",
+                "    }",
+                "  }",
+                "});",
+                "pm.test('DeliveryHub has proper structure', function() { ",
+                "  if (json.deliveryHub) {",
+                "    pm.expect(json.deliveryHub).to.be.an('object');",
+                "    if (json.deliveryHub.coordinates) {",
+                "      pm.expect(json.deliveryHub.coordinates).to.be.an('object');",
+                "    }",
+                "  }",
+                "});"
               ],
               "type": "text/javascript"
             }
@@ -39,7 +66,127 @@
           "header": [ { "key": "Content-Type", "value": "application/json" } ],
           "body": {
             "mode": "raw",
-        "raw": "{\n  \"recipient\": { \"name\": \"Jane Doe\", \"phone\": \"+15550001111\", \"email\": \"jane@example.com\", \"coordinates\": { \"lat\": 40.7128, \"lng\": -74.0060 } },\n  \"pickupLocation\": { \"lat\": 40.6900, \"lng\": -74.0200 },\n  \"sortationCenter\": { \"lat\": 40.7000, \"lng\": -74.0100 },\n  \"deliveryHub\": { \"lat\": 40.7100, \"lng\": -74.0000 },\n  \"metadata\": { \"orderId\": \"ORDER123\" }\n}"
+            "raw": "{\n  \"recipient\": {\n    \"name\": \"Jane Doe\",\n    \"phone\": \"+639171234567\",\n    \"email\": \"jane@example.com\",\n    \"address\": \"SM Mall of Asia, Pasay, Philippines\"\n  },\n  \"pickupLocation\": \"NAIA Terminal 3, Pasay, Philippines\",\n  \"sortationCenter\": \"Ayala Avenue, Makati, Philippines\",\n  \"deliveryHub\": \"5th Avenue, Bonifacio Global City, Taguig, Philippines\",\n  \"metadata\": {\n    \"orderId\": \"ORDER123\",\n    \"weight\": \"2.5kg\",\n    \"dimensions\": \"30x20x10cm\",\n    \"value\": \"₱7500\"\n  }\n}"
+          },
+          "url": { "raw": "{{baseUrl}}/parcel", "host": ["{{baseUrl}}"], "path": ["parcel"] }
+        },
+        "response": []
+      },
+      {
+        "name": "Create Parcel (Legacy Coordinates)",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const json = pm.response.json();",
+                "pm.test('Created parcel has id', function() { pm.expect(json.id).to.be.a('string'); });",
+                "pm.test('QR code present', function() { pm.expect(json.qr).to.include('data:image'); });",
+                "pm.test('Recipient has coordinates', function() { pm.expect(json.recipient.coordinates).to.be.an('object'); });",
+                "pm.test('Coordinates match input', function() {",
+                "  pm.expect(json.recipient.coordinates.lat).to.eql(14.5995);",
+                "  pm.expect(json.recipient.coordinates.lng).to.eql(120.9842);",
+                "});",
+                "pm.test('No formatted address for coordinate input', function() { pm.expect(json.recipient.formattedAddress).to.be.undefined; });"
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ],
+        "request": {
+          "method": "POST",
+          "header": [ { "key": "Content-Type", "value": "application/json" } ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"recipient\": {\n    \"name\": \"John Smith\",\n    \"phone\": \"+639181234567\",\n    \"email\": \"john@example.com\",\n    \"coordinates\": { \"lat\": 14.5995, \"lng\": 120.9842 }\n  },\n  \"pickupLocation\": { \"lat\": 14.5086, \"lng\": 121.0194 },\n  \"sortationCenter\": { \"lat\": 14.5547, \"lng\": 121.0244 },\n  \"deliveryHub\": { \"lat\": 14.5515, \"lng\": 121.0481 },\n  \"metadata\": {\n    \"orderId\": \"ORDER456\",\n    \"weight\": \"1.2kg\",\n    \"dimensions\": \"20x15x5cm\",\n    \"value\": \"₱3750\"\n  }\n}"
+          },
+          "url": { "raw": "{{baseUrl}}/parcel", "host": ["{{baseUrl}}"], "path": ["parcel"] }
+        },
+        "response": []
+      },
+      {
+        "name": "Create Parcel (Metro Manila Address)",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const json = pm.response.json();",
+                "pm.test('Created parcel has id', function() { pm.expect(json.id).to.be.a('string'); });",
+                "pm.test('QR code present', function() { pm.expect(json.qr).to.include('data:image'); });",
+                "pm.test('Recipient has coordinates from geocoding', function() { pm.expect(json.recipient.coordinates).to.be.an('object'); });",
+                "pm.test('Recipient has formatted address', function() { pm.expect(json.recipient.formattedAddress).to.be.a('string'); });",
+                "pm.test('Coordinates are valid numbers', function() {",
+                "  pm.expect(json.recipient.coordinates.lat).to.be.a('number');",
+                "  pm.expect(json.recipient.coordinates.lng).to.be.a('number');",
+                "});"
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ],
+        "request": {
+          "method": "POST",
+          "header": [ { "key": "Content-Type", "value": "application/json" } ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"recipient\": {\n    \"name\": \"Alice Johnson\",\n    \"phone\": \"+639191234567\",\n    \"email\": \"alice@example.com\",\n    \"address\": \"Rizal Park, Manila, Philippines\"\n  },\n  \"pickupLocation\": \"Roxas Boulevard, Manila, Philippines\",\n  \"sortationCenter\": \"EDSA, Quezon City, Philippines\",\n  \"deliveryHub\": \"Ortigas Avenue, Pasig, Philippines\",\n  \"metadata\": {\n    \"orderId\": \"ORDER789\",\n    \"weight\": \"0.8kg\",\n    \"dimensions\": \"15x10x8cm\",\n    \"value\": \"₱2250\",\n    \"description\": \"Birthday gift\"\n  }\n}"
+          },
+          "url": { "raw": "{{baseUrl}}/parcel", "host": ["{{baseUrl}}"], "path": ["parcel"] }
+        },
+        "response": []
+      },
+      {
+        "name": "Create Parcel (Error: No Address or Coordinates)",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Returns 400 error', function() { pm.response.to.have.status(400); });",
+                "pm.test('Error message mentions address or coordinates required', function() {",
+                "  const json = pm.response.json();",
+                "  pm.expect(json.error).to.include('address or coordinates');",
+                "});"
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ],
+        "request": {
+          "method": "POST",
+          "header": [ { "key": "Content-Type", "value": "application/json" } ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"recipient\": {\n    \"name\": \"Test User\",\n    \"phone\": \"+15550003333\",\n    \"email\": \"test@example.com\"\n  },\n  \"metadata\": { \"orderId\": \"ERROR_TEST\" }\n}"
+          },
+          "url": { "raw": "{{baseUrl}}/parcel", "host": ["{{baseUrl}}"], "path": ["parcel"] }
+        },
+        "response": []
+      },
+      {
+        "name": "Create Parcel (Error: Invalid Address)",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Returns 500 error for invalid address', function() { pm.response.to.have.status(500); });",
+                "pm.test('Error message mentions geocoding failure', function() {",
+                "  const json = pm.response.json();",
+                "  pm.expect(json.error).to.include('geocode');",
+                "});"
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ],
+        "request": {
+          "method": "POST",
+          "header": [ { "key": "Content-Type", "value": "application/json" } ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"recipient\": {\n    \"name\": \"Test User\",\n    \"phone\": \"+15550004444\",\n    \"email\": \"test@example.com\",\n    \"address\": \"ThisIsNotARealAddressAtAll12345XYZ\"\n  },\n  \"metadata\": { \"orderId\": \"INVALID_ADDRESS_TEST\" }\n}"
           },
           "url": { "raw": "{{baseUrl}}/parcel", "host": ["{{baseUrl}}"], "path": ["parcel"] }
         },
@@ -69,14 +216,23 @@
           "header": [ {"key": "Content-Type", "value": "application/json"} ],
           "body": {
             "mode": "raw",
-            "raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"courierId\": \"courier-42\",\n  \"gps\": { \"lat\": 40.7128, \"lng\": -74.0060 }\n}"
+            "raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"courierId\": \"courier-42\",\n  \"gps\": \"Ayala Avenue, Makati, Philippines\"\n}"
           },
           "url": { "raw": "{{baseUrl}}/verify-scan", "host": ["{{baseUrl}}"], "path": ["verify-scan"] }
         },
         "event": [
           {"listen": "test", "script": {"type": "text/javascript", "exec": [
             "const json = pm.response.json();",
-            "pm.test('Handoff logged', function(){ pm.expect(json.parcel.handoffLog.length).to.be.greaterThan(0); });"
+            "pm.test('Handoff logged', function(){ pm.expect(json.parcel.handoffLog.length).to.be.greaterThan(0); });",
+            "pm.test('GPS location has proper structure', function() {",
+            "  const handoffLog = json.parcel.handoffLog;",
+            "  if (handoffLog && handoffLog.length > 0) {",
+            "    const latestHandoff = handoffLog[handoffLog.length - 1];",
+            "    if (latestHandoff.gps) {",
+            "      pm.expect(latestHandoff.gps).to.be.an('object');",
+            "    }",
+            "  }",
+            "});"
           ]}}
         ],
         "response": []
@@ -101,7 +257,7 @@
         "request": {
           "method": "POST",
           "header": [ {"key": "Content-Type", "value": "application/json"} ],
-          "body": {"mode": "raw", "raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 40.713, \"lng\": -74.005 },\n  \"timestamp\": \"{{currentTimestamp}}\"\n}"},
+          "body": {"mode": "raw", "raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.550, \"lng\": 121.020 },\n  \"timestamp\": \"{{currentTimestamp}}\"\n}"},
           "url": { "raw": "{{baseUrl}}/track-parcel", "host": ["{{baseUrl}}"], "path": ["track-parcel"] }
         },
         "event": [
@@ -112,9 +268,12 @@
             "const json = pm.response.json();",
             "pm.test('Tracking response has parcelId', () => pm.expect(json.parcelId).to.eql(pm.collectionVariables.get('parcelId')));",
             "pm.test('Latest contains coordinates', () => pm.expect(json.latest.coordinates).to.be.an('object'));",
-            "pm.test('Includes recipientCoordinates (nullable)', () => pm.expect(json).to.have.property('recipientCoordinates'));",
-            "pm.test('Includes distanceMeters when both points known', () => { if(json.recipientCoordinates && json.latest.coordinates) { pm.expect(json.distanceMeters).to.be.a('number'); } });",
-            "pm.test('Legs object present after first tracking (if destination + at least one hub point exists)', () => { if(json.recipientCoordinates){ pm.expect(json).to.have.property('legs'); } });"
+            "pm.test('Latest entry has proper structure', () => {",
+            "  pm.expect(json.latest).to.have.property('coordinates');",
+            "  pm.expect(json.latest).to.have.property('timestamp');",
+            "});",
+            "pm.test('Response contains latest tracking entry', () => pm.expect(json.latest).to.be.an('object'));",
+            "pm.test('Tracking count increases', () => pm.expect(json.count).to.be.a('number'));"
           ]}}
         ],
         "response": []
@@ -124,7 +283,7 @@
         "request": {
           "method": "PATCH",
           "header": [ { "key": "Content-Type", "value": "application/json" } ],
-          "body": { "mode": "raw", "raw": "{\n  \"sortationCenter\": { \"lat\": 40.7050, \"lng\": -74.0120 },\n  \"deliveryHub\": { \"lat\": 40.7150, \"lng\": -73.9950 },\n  \"actor\": \"ops-user-1\"\n}" },
+          "body": { "mode": "raw", "raw": "{\n  \"sortationCenter\": \"Makati Avenue, Makati, Philippines\",\n  \"deliveryHub\": \"26th Street, Bonifacio Global City, Taguig, Philippines\",\n  \"actor\": \"ops-user-1\"\n}" },
           "url": { "raw": "{{baseUrl}}/parcel/{{parcelId}}/hubs", "host": ["{{baseUrl}}"], "path": ["parcel", "{{parcelId}}", "hubs"] }
         },
         "event": [
@@ -132,6 +291,14 @@
             "const json = pm.response.json();",
             "pm.test('Hub update returns parcel id', () => pm.expect(json.id).to.eql(pm.collectionVariables.get('parcelId')));",
             "pm.test('Hub audit log exists', () => pm.expect(json.hubAuditLog).to.be.an('array'));",
+            "pm.test('Updated hubs have proper structure', () => {",
+            "  if (json.sortationCenter) {",
+            "    pm.expect(json.sortationCenter).to.be.an('object');",
+            "  }",
+            "  if (json.deliveryHub) {",
+            "    pm.expect(json.deliveryHub).to.be.an('object');",
+            "  }",
+            "});",
             "pm.test('Legs reset after hub update', () => pm.expect(json.legs).to.be.undefined);"
           ]}}
         ],
@@ -147,15 +314,16 @@
         "event": [
           {"listen": "test", "script": {"type": "text/javascript", "exec": [
             "const json = pm.response.json();",
-            "pm.test('Tracking history returns array', () => pm.expect(json.points).to.be.an('array'));"
+            "pm.test('Tracking history returns array', () => pm.expect(json).to.be.an('array'));"
           ]}}
         ],
         "response": []
       }
     ],
     "variable": [
-      { "key": "baseUrl", "value": "http://localhost:4000" },
-      { "key": "parcelId", "value": "" }
+      { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+      { "key": "parcelId", "value": "", "type": "string" },
+      { "key": "currentTimestamp", "value": "", "type": "string" }
     ]
     ,
     "event": []

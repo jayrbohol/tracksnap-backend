@@ -66,39 +66,48 @@
         },
         {
           "name": "Checkpoint 005 - Batasan Hills",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.6856, \"lng\": 121.0415 },\n  \"timestamp\": \"2025-10-01T17:20:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}}
+          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.6856, \"lng\": 121.0415 },\n  \"timestamp\": \"2025-10-01T17:20:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}},
+          "response": []
         },
         {
           "name": "Checkpoint 006 - Sandiganbayan",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.6948, \"lng\": 121.0390 },\n  \"timestamp\": \"2025-10-01T17:25:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}}
+          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.6948, \"lng\": 121.0390 },\n  \"timestamp\": \"2025-10-01T17:25:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}},
+          "response": []
         },
         {
           "name": "Checkpoint 007 - Ever Gotesco",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.7040, \"lng\": 121.0365 },\n  \"timestamp\": \"2025-10-01T17:30:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}}
+          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.7040, \"lng\": 121.0365 },\n  \"timestamp\": \"2025-10-01T17:30:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}},
+          "response": []
         },
         {
           "name": "Checkpoint 008 - Don Jose St.",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.7132, \"lng\": 121.0340 },\n  \"timestamp\": \"2025-10-01T17:35:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}}
+          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.7132, \"lng\": 121.0340 },\n  \"timestamp\": \"2025-10-01T17:35:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}},
+          "response": []
         },
         {
           "name": "Checkpoint 009 - Regalado Ave",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.7224, \"lng\": 121.0315 },\n  \"timestamp\": \"2025-10-01T17:40:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}}
+          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.7224, \"lng\": 121.0315 },\n  \"timestamp\": \"2025-10-01T17:40:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}},
+          "response": []
         },
         {
           "name": "Checkpoint 010 - Mindanao Ave Ext",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.7316, \"lng\": 121.0290 },\n  \"timestamp\": \"2025-10-01T17:45:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}}
+          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.7316, \"lng\": 121.0290 },\n  \"timestamp\": \"2025-10-01T17:45:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}},
+          "response": []
         },
         {
           "name": "Checkpoint 011 - Novaliches Proper",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.7408, \"lng\": 121.0265 },\n  \"timestamp\": \"2025-10-01T17:50:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}}
+          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.7408, \"lng\": 121.0265 },\n  \"timestamp\": \"2025-10-01T17:50:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}},
+          "response": []
         },
         {
           "name": "Checkpoint 012 - La Mesa Eco Park",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.7500, \"lng\": 121.0240 },\n  \"timestamp\": \"2025-10-01T17:55:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}}
+          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.7500, \"lng\": 121.0240 },\n  \"timestamp\": \"2025-10-01T17:55:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}},
+          "response": []
         },
         {
           "name": "Checkpoint 013 - SM City Fairview Entrance",
-          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.7592, \"lng\": 121.0215 },\n  \"timestamp\": \"2025-10-01T18:00:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}}
+          "request": {"method": "POST","header": [{"key":"Content-Type","value":"application/json"}],"body": {"mode":"raw","raw": "{\n  \"parcelId\": \"{{parcelId}}\",\n  \"coordinates\": { \"lat\": 14.7592, \"lng\": 121.0215 },\n  \"timestamp\": \"2025-10-01T18:00:00+08:00\"\n}"},"url": {"raw": "{{baseUrl}}/track-parcel", "host":["{{baseUrl}}"], "path":["track-parcel"]}},
+          "response": []
         },
         {
           "name": "Checkpoint 014 - SM Fairview Final Delivery",

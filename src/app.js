@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import parcelRoutes from './routes/parcels.js';
 import verifyRoutes from './routes/verify.js';
@@ -8,6 +9,15 @@ import trackRoutes from './routes/track.js';
 dotenv.config();
 
 const app = express();
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.FRONTEND_URL || '*',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
 app.use(express.json());
 
 // Basic health check

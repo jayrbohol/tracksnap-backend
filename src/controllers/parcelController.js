@@ -6,8 +6,14 @@ export async function createParcel(req, res, next) {
     if (!recipient || typeof recipient !== 'object') {
       return res.status(400).json({ error: 'recipient object is required' });
     }
-    // Normalize & validate coordinates if provided
-    if (recipient.coordinates) {
+    
+    // Validate recipient has either address or coordinates
+    if (!recipient.address && !recipient.coordinates) {
+      return res.status(400).json({ error: 'recipient must have either address or coordinates' });
+    }
+    
+    // If coordinates are provided (legacy support), validate them
+    if (recipient.coordinates && !recipient.address) {
       const { coordinates } = recipient;
       const lat = coordinates.lat;
       const lng = coordinates.lng;
@@ -21,24 +27,45 @@ export async function createParcel(req, res, next) {
       // Strip extra props to keep schema tight
       recipient.coordinates = { lat, lng };
     }
-    const validatePoint = (pt, label) => {
-      if (pt == null) return undefined;
-      if (typeof pt !== 'object') throw new Error(label + ' must be object');
-      const { lat, lng } = pt;
-      const isNum = (v) => typeof v === 'number' && !Number.isNaN(v);
-      if (!isNum(lat) || !isNum(lng)) throw new Error(label + '.lat & lng must be numbers');
-      if (lat < -90 || lat > 90 || lng < -180 || lng > 180) throw new Error(label + ' out of range');
-      return { lat, lng };
+    
+    // If address is provided, validate it's a string (geocoding will be done in service)
+    if (recipient.address && typeof recipient.address !== 'string') {
+      return res.status(400).json({ error: 'recipient.address must be a string' });
+    }
+
+    // Validate location parameters (can be address strings or coordinate objects)
+    const validateLocation = (location, label) => {
+      if (!location) return undefined;
+      
+      // If it's a string, it should be an address
+      if (typeof location === 'string') {
+        if (location.trim().length === 0) {
+          throw new Error(`${label} address cannot be empty`);
+        }
+        return location;
+      }
+      
+      // If it's an object, it should be coordinates (legacy support)
+      if (typeof location === 'object' && location.lat !== undefined && location.lng !== undefined) {
+        const { lat, lng } = location;
+        const isNum = (v) => typeof v === 'number' && !Number.isNaN(v);
+        if (!isNum(lat) || !isNum(lng)) throw new Error(label + '.lat & lng must be numbers');
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) throw new Error(label + ' out of range');
+        return { lat, lng };
+      }
+      
+      throw new Error(`${label} must be either an address string or coordinates object with lat/lng`);
     };
-    let sanitizedSortation; let sanitizedHub; let sanitizedPickup;
+
+    let validatedSortation, validatedHub, validatedPickup;
     try {
-      sanitizedSortation = validatePoint(sortationCenter, 'sortationCenter');
-      sanitizedHub = validatePoint(deliveryHub, 'deliveryHub');
-      sanitizedPickup = validatePoint(pickupLocation, 'pickupLocation');
+      validatedSortation = validateLocation(sortationCenter, 'sortationCenter');
+      validatedHub = validateLocation(deliveryHub, 'deliveryHub');
+      validatedPickup = validateLocation(pickupLocation, 'pickupLocation');
     } catch (e) {
       return res.status(400).json({ error: e.message });
     }
-    const parcel = await parcelService.createParcel({ recipient, metadata, pickupLocation: sanitizedPickup, sortationCenter: sanitizedSortation, deliveryHub: sanitizedHub });
+    const parcel = await parcelService.createParcel({ recipient, metadata, pickupLocation: validatedPickup, sortationCenter: validatedSortation, deliveryHub: validatedHub });
     res.status(201).json(parcel);
   } catch (err) {
     next(err);
@@ -62,11 +89,44 @@ export async function updateParcelHubs(req, res, next) {
     if (!sortationCenter && !deliveryHub) {
       return res.status(400).json({ error: 'Provide at least one of sortationCenter or deliveryHub' });
     }
-    const parcel = await parcelService.updateHubs({ parcelId: id, sortationCenter, deliveryHub, actor });
+
+    // Validate hub parameters (can be address strings or coordinate objects)
+    const validateHub = (hub, label) => {
+      if (!hub) return undefined;
+      
+      // If it's a string, it should be an address
+      if (typeof hub === 'string') {
+        if (hub.trim().length === 0) {
+          throw new Error(`${label} address cannot be empty`);
+        }
+        return hub;
+      }
+      
+      // If it's an object, it should be coordinates (legacy support)
+      if (typeof hub === 'object' && hub.lat !== undefined && hub.lng !== undefined) {
+        const { lat, lng } = hub;
+        const isNum = (v) => typeof v === 'number' && !Number.isNaN(v);
+        if (!isNum(lat) || !isNum(lng)) throw new Error(label + '.lat & lng must be numbers');
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) throw new Error(label + ' out of range');
+        return { lat, lng };
+      }
+      
+      throw new Error(`${label} must be either an address string or coordinates object with lat/lng`);
+    };
+
+    let validatedSortation, validatedHub;
+    try {
+      validatedSortation = validateHub(sortationCenter, 'sortationCenter');
+      validatedHub = validateHub(deliveryHub, 'deliveryHub');
+    } catch (e) {
+      return res.status(400).json({ error: e.message });
+    }
+
+    const parcel = await parcelService.updateHubs({ parcelId: id, sortationCenter: validatedSortation, deliveryHub: validatedHub, actor });
     res.json(parcel);
   } catch (err) {
     if (err.message.includes('not found')) return res.status(404).json({ error: 'Parcel not found' });
-    if (/out of range|must be numbers/.test(err.message)) return res.status(400).json({ error: err.message });
+    if (/out of range|must be numbers|geocode/.test(err.message)) return res.status(400).json({ error: err.message });
     next(err);
   }
 }
