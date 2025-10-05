@@ -5,6 +5,7 @@ import parcelRoutes from './routes/parcels.js';
 import verifyRoutes from './routes/verify.js';
 import recipientRoutes from './routes/recipients.js';
 import trackRoutes from './routes/track.js';
+import geocodingRoutes from './routes/geocoding.js';
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use('/parcel', parcelRoutes); // POST /parcel, GET /parcel/:id
 app.use('/', verifyRoutes); // POST /verify-scan
 app.use('/', recipientRoutes); // POST /feedback (could also be /feedback)
 app.use('/', trackRoutes); // POST /track-parcel
+app.use('/geocoding', geocodingRoutes); // GET /geocoding/cache/stats, POST /geocoding/cache/cleanup
 
 // 404 handler
 app.use((req, res) => {

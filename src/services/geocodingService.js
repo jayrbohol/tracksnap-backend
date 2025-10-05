@@ -1,9 +1,18 @@
 /**
  * Geocoding service to convert addresses to coordinates
  * Uses OpenStreetMap Nominatim API (free, no API key required)
+ * Automatically uses database caching when PostgreSQL is configured
  */
 
-export const geocodingService = {
+import { geocodingServiceWithCache } from './geocodingServiceWithCache.js';
+
+// Dynamic service selection based on current environment
+function getGeocodingService() {
+  const useCache = process.env.DATA_BACKEND === 'postgres';
+  return useCache ? geocodingServiceWithCache : basicGeocodingService;
+}
+
+const basicGeocodingService = {
   /**
    * Convert address to coordinates using Nominatim API
    * @param {string} address - The address to geocode
@@ -66,5 +75,30 @@ export const geocodingService = {
     if (!isNum(lat) || !isNum(lng)) return false;
     if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return false;
     return true;
+  }
+};
+
+// Export the dynamic geocoding service
+export const geocodingService = {
+  async getCoordinates(address) {
+    const service = getGeocodingService();
+    return await service.getCoordinates(address);
+  },
+  
+  validateCoordinates(lat, lng) {
+    const service = getGeocodingService();
+    return service.validateCoordinates(lat, lng);
+  }
+};
+
+// Export cache stats and cleanup utilities when using PostgreSQL
+export const geocodingCache = {
+  getStats: () => {
+    const useCache = process.env.DATA_BACKEND === 'postgres';
+    return useCache ? geocodingServiceWithCache.getCacheStats() : Promise.resolve({ cacheEnabled: false, message: 'Geocoding cache requires PostgreSQL backend (DATA_BACKEND=postgres)' });
+  },
+  cleanup: (daysOld) => {
+    const useCache = process.env.DATA_BACKEND === 'postgres';
+    return useCache ? geocodingServiceWithCache.cleanupCache(daysOld) : Promise.resolve({ cleaned: 0, error: 'Cache not enabled' });
   }
 };

@@ -7,13 +7,23 @@ export async function createParcel(req, res, next) {
       return res.status(400).json({ error: 'recipient object is required' });
     }
     
-    // Validate recipient has either address or coordinates
-    if (!recipient.address && !recipient.coordinates) {
-      return res.status(400).json({ error: 'recipient must have either address or coordinates' });
+    // Validate mandatory recipient fields
+    if (!recipient.name || typeof recipient.name !== 'string' || recipient.name.trim().length === 0) {
+      return res.status(400).json({ error: 'recipient.name is required and must be a non-empty string' });
     }
     
-    // If coordinates are provided (legacy support), validate them
-    if (recipient.coordinates && !recipient.address) {
+    if (!recipient.phone || typeof recipient.phone !== 'string' || recipient.phone.trim().length === 0) {
+      return res.status(400).json({ error: 'recipient.phone is required and must be a non-empty string' });
+    }
+    
+    if (!recipient.address || typeof recipient.address !== 'string' || recipient.address.trim().length === 0) {
+      return res.status(400).json({ error: 'recipient.address is required and must be a non-empty string' });
+    }
+    
+    // Note: address is now mandatory, coordinates are optional (legacy support)
+    // If coordinates are provided along with address, validate them
+    
+    if (recipient.coordinates) {
       const { coordinates } = recipient;
       const lat = coordinates.lat;
       const lng = coordinates.lng;
@@ -26,11 +36,6 @@ export async function createParcel(req, res, next) {
       }
       // Strip extra props to keep schema tight
       recipient.coordinates = { lat, lng };
-    }
-    
-    // If address is provided, validate it's a string (geocoding will be done in service)
-    if (recipient.address && typeof recipient.address !== 'string') {
-      return res.status(400).json({ error: 'recipient.address must be a string' });
     }
 
     // Validate location parameters (can be address strings or coordinate objects)

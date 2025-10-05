@@ -1,7 +1,6 @@
   {
     "info": {
       "_postman_id": "b6f7f1f0-4c6e-4b8b-9c42-tracksnap12345",
-      "name": "TrackSnap Backend API",
       "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
       "description": "Postman collection for TrackSnap parcel tracking backend.\n\n## New Address-Based Parcel Creation\n\nThe API now supports creating parcels using recipient addresses instead of coordinates:\n- **Primary method**: Use `recipient.address` (string) - automatically geocoded to coordinates\n- **Legacy support**: Use `recipient.coordinates` (lat/lng object) - still supported\n\n## Features\n- Automatic geocoding using OpenStreetMap Nominatim API\n- Real-time parcel tracking with GPS coordinates\n- QR code generation for parcel identification\n- WebSocket notifications for live updates\n- Comprehensive error handling and validation\n\n## Test Cases Include\n- Address-based parcel creation (Metro Manila, Philippines)\n- Legacy coordinate-based creation\n- Error handling for invalid addresses\n- Complete parcel lifecycle testing\n\n## Location Examples\n- **Metro Manila Landmarks**: SM Mall of Asia, NAIA Terminal 3, Makati CBD, BGC Taguig\n- **Real Addresses**: All test addresses use actual locations in Metro Manila, Philippines"
     },
@@ -82,12 +81,12 @@
                 "const json = pm.response.json();",
                 "pm.test('Created parcel has id', function() { pm.expect(json.id).to.be.a('string'); });",
                 "pm.test('QR code present', function() { pm.expect(json.qr).to.include('data:image'); });",
-                "pm.test('Recipient has coordinates', function() { pm.expect(json.recipient.coordinates).to.be.an('object'); });",
-                "pm.test('Coordinates match input', function() {",
-                "  pm.expect(json.recipient.coordinates.lat).to.eql(14.5995);",
-                "  pm.expect(json.recipient.coordinates.lng).to.eql(120.9842);",
-                "});",
-                "pm.test('No formatted address for coordinate input', function() { pm.expect(json.recipient.formattedAddress).to.be.undefined; });"
+                "pm.test('Recipient has coordinates from geocoding', function() { pm.expect(json.recipient.coordinates).to.be.an('object'); });",
+                "pm.test('Recipient has formatted address from geocoding', function() { pm.expect(json.recipient.formattedAddress).to.be.a('string'); });",
+                "pm.test('Coordinates are valid numbers', function() {",
+                "  pm.expect(json.recipient.coordinates.lat).to.be.a('number');",
+                "  pm.expect(json.recipient.coordinates.lng).to.be.a('number');",
+                "});"
               ],
               "type": "text/javascript"
             }
@@ -98,7 +97,7 @@
           "header": [ { "key": "Content-Type", "value": "application/json" } ],
           "body": {
             "mode": "raw",
-            "raw": "{\n  \"recipient\": {\n    \"name\": \"John Smith\",\n    \"phone\": \"+639181234567\",\n    \"email\": \"john@example.com\",\n    \"coordinates\": { \"lat\": 14.5995, \"lng\": 120.9842 }\n  },\n  \"pickupLocation\": { \"lat\": 14.5086, \"lng\": 121.0194 },\n  \"sortationCenter\": { \"lat\": 14.5547, \"lng\": 121.0244 },\n  \"deliveryHub\": { \"lat\": 14.5515, \"lng\": 121.0481 },\n  \"metadata\": {\n    \"orderId\": \"ORDER456\",\n    \"weight\": \"1.2kg\",\n    \"dimensions\": \"20x15x5cm\",\n    \"value\": \"₱3750\"\n  }\n}"
+            "raw": "{\n  \"recipient\": {\n    \"name\": \"John Smith\",\n    \"phone\": \"+639181234567\",\n    \"email\": \"john@example.com\",\n    \"address\": \"Manila, Philippines\",\n    \"coordinates\": { \"lat\": 14.5995, \"lng\": 120.9842 }\n  },\n  \"pickupLocation\": { \"lat\": 14.5086, \"lng\": 121.0194 },\n  \"sortationCenter\": { \"lat\": 14.5547, \"lng\": 121.0244 },\n  \"deliveryHub\": { \"lat\": 14.5515, \"lng\": 121.0481 },\n  \"metadata\": {\n    \"orderId\": \"ORDER456\",\n    \"weight\": \"1.2kg\",\n    \"dimensions\": \"20x15x5cm\",\n    \"value\": \"₱3750\"\n  }\n}"
           },
           "url": { "raw": "{{baseUrl}}/parcel", "host": ["{{baseUrl}}"], "path": ["parcel"] }
         },
@@ -137,16 +136,16 @@
         "response": []
       },
       {
-        "name": "Create Parcel (Error: No Address or Coordinates)",
+        "name": "Create Parcel (Error: Missing Mandatory Fields)",
         "event": [
           {
             "listen": "test",
             "script": {
               "exec": [
                 "pm.test('Returns 400 error', function() { pm.response.to.have.status(400); });",
-                "pm.test('Error message mentions address or coordinates required', function() {",
+                "pm.test('Error message mentions required field', function() {",
                 "  const json = pm.response.json();",
-                "  pm.expect(json.error).to.include('address or coordinates');",
+                "  pm.expect(json.error).to.include('required');",
                 "});"
               ],
               "type": "text/javascript"

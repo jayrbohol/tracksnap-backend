@@ -10,33 +10,39 @@ const repo = getParcelRepo();
 export const parcelService = {
   async createParcel({ recipient, metadata, pickupLocation, sortationCenter, deliveryHub }) {
     if (!recipient || typeof recipient !== 'object') throw new Error('recipient is required');
+    
+    // Validate mandatory fields
+    if (!recipient.name || typeof recipient.name !== 'string' || recipient.name.trim().length === 0) {
+      throw new Error('recipient.name is required and must be a non-empty string');
+    }
+    if (!recipient.phone || typeof recipient.phone !== 'string' || recipient.phone.trim().length === 0) {
+      throw new Error('recipient.phone is required and must be a non-empty string');
+    }
+    if (!recipient.address || typeof recipient.address !== 'string' || recipient.address.trim().length === 0) {
+      throw new Error('recipient.address is required and must be a non-empty string');
+    }
+    
     console.log('test data', recipient, metadata, pickupLocation, sortationCenter, deliveryHub);
     
-    // Handle recipient address and geocode to coordinates
-    if (recipient.address) {
-      if (typeof recipient.address !== 'string') {
-        throw new Error('recipient.address must be a string');
-      }
-      try {
-        const geocodeResult = await geocodingService.getCoordinates(recipient.address);
-        recipient = { 
-          ...recipient, 
-          coordinates: { lat: geocodeResult.lat, lng: geocodeResult.lng },
-          formattedAddress: geocodeResult.displayName // Store the formatted address from geocoding
-        };
-        console.log(`Geocoded address "${recipient.address}" to coordinates:`, recipient.coordinates);
-      } catch (error) {
-        throw new Error(`Failed to geocode recipient address: ${error.message}`);
-      }
-    } else if (recipient.coordinates) {
-      // Legacy support: if coordinates are provided directly, validate them
+    // Handle recipient address and geocode to coordinates (address is now mandatory)
+    try {
+      const geocodeResult = await geocodingService.getCoordinates(recipient.address);
+      recipient = { 
+        ...recipient, 
+        coordinates: { lat: geocodeResult.lat, lng: geocodeResult.lng },
+        formattedAddress: geocodeResult.displayName // Store the formatted address from geocoding
+      };
+      console.log(`Geocoded address "${recipient.address}" to coordinates:`, recipient.coordinates);
+    } catch (error) {
+      throw new Error(`Failed to geocode recipient address: ${error.message}`);
+    }
+    
+    // If coordinates were also provided (legacy support), validate them but prioritize geocoded coordinates
+    if (recipient.coordinates && typeof recipient.coordinates === 'object') {
       const { lat, lng } = recipient.coordinates;
       const isNum = (v) => typeof v === 'number' && !Number.isNaN(v);
       if (!isNum(lat) || !isNum(lng)) throw new Error('recipient.coordinates.lat & lng must be numbers');
       if (lat < -90 || lat > 90 || lng < -180 || lng > 180) throw new Error('recipient.coordinates out of range');
-      recipient = { ...recipient, coordinates: { lat, lng } }; // sanitized
-    } else {
-      throw new Error('recipient must have either address or coordinates');
     }
 
     // Helper function to geocode address strings or validate coordinate objects
