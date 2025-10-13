@@ -1,0 +1,238 @@
+openapi: 3.0.0
+info:
+  title: TrackSnap API
+  version: 1.0.0
+  description: API documentation for all TrackSnap backend endpoints
+servers:
+  - url: http://localhost:3000
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Server is healthy
+  /parcel:
+    post:
+      summary: Create a new parcel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParcelCreateRequest'
+      responses:
+        '200':
+          description: Parcel created
+    get:
+      summary: Get parcel by ID (use /parcel/{id})
+      responses:
+        '404':
+          description: Not found
+  /parcel/{id}:
+    get:
+      summary: Get parcel by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Parcel details
+    patch:
+      summary: Update parcel hubs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParcelHubsUpdateRequest'
+      responses:
+        '200':
+          description: Parcel hubs updated
+  /verify-scan:
+    post:
+      summary: Verify scan event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyScanRequest'
+      responses:
+        '200':
+          description: Scan verified
+  /feedback:
+    post:
+      summary: Submit feedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+      responses:
+        '200':
+          description: Feedback submitted
+  /track-parcel:
+    post:
+      summary: Track parcel location
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrackParcelRequest'
+      responses:
+        '200':
+          description: Tracking updated
+  /track-parcel/{id}/history:
+    get:
+      summary: Get tracking history for a parcel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tracking history
+  /geocoding/cache/stats:
+    get:
+      summary: Get geocoding cache stats
+      responses:
+        '200':
+          description: Cache stats
+  /geocoding/cache/cleanup:
+    post:
+      summary: Cleanup geocoding cache
+      responses:
+        '200':
+          description: Cache cleaned
+  /ws/stats:
+    get:
+      summary: Get WebSocket connection stats
+      responses:
+        '200':
+          description: WebSocket stats
+  /ws/tracked-parcels:
+    get:
+      summary: Get tracked parcels with active WebSocket subscriptions
+      responses:
+        '200':
+          description: List of tracked parcels
+  /ws/broadcast:
+    post:
+      summary: Broadcast message to parcel subscribers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BroadcastRequest'
+      responses:
+        '200':
+          description: Message broadcasted
+  /ws/system-alert:
+    post:
+      summary: Broadcast system-wide alert
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SystemAlertRequest'
+      responses:
+        '200':
+          description: Alert broadcasted
+  /ws/cleanup:
+    post:
+      summary: Cleanup inactive WebSocket connections
+      responses:
+        '200':
+          description: Connections cleaned
+  /ws/test:
+    post:
+      summary: Send test message to parcel channel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestMessageRequest'
+      responses:
+        '200':
+          description: Test message sent
+components:
+  schemas:
+    ParcelCreateRequest:
+      type: object
+      properties:
+        recipient:
+          type: object
+        metadata:
+          type: object
+    ParcelHubsUpdateRequest:
+      type: object
+      properties:
+        sortationCenter:
+          type: object
+        deliveryHub:
+          type: object
+    VerifyScanRequest:
+      type: object
+      properties:
+        parcelId:
+          type: string
+        courierId:
+          type: string
+        gps:
+          type: object
+        timestamp:
+          type: string
+    FeedbackRequest:
+      type: object
+      properties:
+        parcelId:
+          type: string
+        rating:
+          type: integer
+        issue:
+          type: string
+    TrackParcelRequest:
+      type: object
+      properties:
+        parcelId:
+          type: string
+        coordinates:
+          type: object
+        timestamp:
+          type: string
+    BroadcastRequest:
+      type: object
+      properties:
+        parcelId:
+          type: string
+        message:
+          type: string
+    SystemAlertRequest:
+      type: object
+      properties:
+        message:
+          type: string
+    TestMessageRequest:
+      type: object
+      properties:
+        parcelId:
+          type: string
+        message:
+          type: string
