@@ -147,9 +147,23 @@ export const parcelService = {
       photoURL: photoURL || null
     };
     parcel.handoffLog.push(logEntry);
+    const oldStatus = parcel.status;
     parcel.status = 'delivered';
+    parcel.deliveredAt = logEntry.timestamp;
     await repo.save(parcel);
+    
+    // Enhanced broadcasting with multiple event types
     wsHub.broadcastHandoff(parcel);
+    
+    // Broadcast status change if different
+    if (oldStatus !== 'delivered') {
+      wsHub.broadcastStatusUpdate(parcel.id, 'delivered', {
+        deliveredAt: parcel.deliveredAt,
+        courierId,
+        location: processedGps
+      });
+    }
+    
     return parcel;
   },
 
@@ -197,17 +211,80 @@ export const parcelService = {
     };
     parcel.trackingLog = parcel.trackingLog || [];
     parcel.trackingLog.push(entry);
+    
+    // Update status to in_transit if still pending
+    const oldStatus = parcel.status;
+    if (parcel.status === 'pending') {
+      parcel.status = 'in_transit';
+    }
+    
     await repo.save(parcel);
-    wsHub.broadcastTracking(parcel.id, entry);
+    
+    // Enhanced broadcasting with detailed tracking information
+    const enhancedEntry = {
+      ...entry,
+      parcelId: parcel.id,
+      status: parcel.status,
+      legs: parcel.legs,
+      metadata: parcel.metadata
+    };
+    
+    wsHub.broadcastTracking(parcel.id, enhancedEntry);
+    
+    // Broadcast status change if transitioned from pending to in_transit
+    if (oldStatus === 'pending' && parcel.status === 'in_transit') {
+      wsHub.broadcastStatusUpdate(parcel.id, 'in_transit', {
+        firstTrackingUpdate: entry.timestamp,
+        location: entry.coordinates
+      });
+    }
+    
+    // Handle batch updates if parcel is part of a batch
+    if (parcel.metadata?.batchId) {
+      // Note: This would require additional batch management logic
+      wsHub.broadcastToMultiple([parcel.metadata.batchId], 'batch_tracking_update', {
+        updatedParcel: parcel.id,
+        location: entry.coordinates,
+        timestamp: entry.timestamp
+      });
+    }
+    
     return { parcelId: parcel.id, latest: entry, count: parcel.trackingLog.length };
   },
 
-  async addFeedback({ parcelId, rating, issue }) {
+  async addFeedback({ parcelId, rating, issue, comments }) {
     const parcel = await repo.getById(parcelId);
     if (!parcel) throw new Error('Parcel not found');
-    parcel.feedback = { rating, issue: issue || null, timestamp: new Date().toISOString() };
-    if (issue) parcel.status = 'flagged';
+    
+    const feedback = { 
+      rating, 
+      issue: issue || null, 
+      comments: comments || null,
+      timestamp: new Date().toISOString() 
+    };
+    
+    parcel.feedback = feedback;
+    const oldStatus = parcel.status;
+    
+    if (issue) {
+      parcel.status = 'flagged';
+    }
+    
     await repo.save(parcel);
+    
+    // Broadcast feedback event
+    wsHub.broadcastFeedback(parcel.id, feedback);
+    
+    // Broadcast status change if flagged
+    if (issue && oldStatus !== 'flagged') {
+      wsHub.broadcastStatusUpdate(parcel.id, 'flagged', {
+        reason: 'customer_feedback',
+        issue,
+        rating,
+        flaggedAt: feedback.timestamp
+      });
+    }
+    
     return parcel;
   }
   ,
@@ -266,11 +343,31 @@ export const parcelService = {
       parcel.deliveryHub = newHub;
     }
     if (Object.keys(changes).length === 0) return parcel; // nothing changed
+    
+    const auditEntry = { 
+      timestamp: new Date().toISOString(), 
+      actor: actor || null, 
+      changes 
+    };
+    
     parcel.hubAuditLog = parcel.hubAuditLog || [];
-    parcel.hubAuditLog.push({ timestamp: new Date().toISOString(), actor: actor || null, changes });
+    parcel.hubAuditLog.push(auditEntry);
+    
     // Reset legs so they recompute on next tracking event
     parcel.legs = undefined;
+    
     await repo.save(parcel);
+    
+    // Broadcast route update with detailed change information
+    wsHub.broadcastRouteUpdate(parcel.id, {
+      actor: actor || 'system',
+      changes,
+      timestamp: auditEntry.timestamp,
+      parcelId: parcel.id,
+      newSortationCenter: parcel.sortationCenter,
+      newDeliveryHub: parcel.deliveryHub
+    });
+    
     return parcel;
   }
 };

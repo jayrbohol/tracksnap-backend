@@ -6,6 +6,7 @@ import verifyRoutes from './routes/verify.js';
 import recipientRoutes from './routes/recipients.js';
 import trackRoutes from './routes/track.js';
 import geocodingRoutes from './routes/geocoding.js';
+import websocketRoutes from './routes/websocket.js';
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use('/', verifyRoutes); // POST /verify-scan
 app.use('/', recipientRoutes); // POST /feedback (could also be /feedback)
 app.use('/', trackRoutes); // POST /track-parcel
 app.use('/geocoding', geocodingRoutes); // GET /geocoding/cache/stats, POST /geocoding/cache/cleanup
+app.use('/ws', websocketRoutes); // WebSocket management endpoints
 
 // 404 handler
 app.use((req, res) => {
